@@ -53,7 +53,9 @@ class IngredientRecipeWriteSerializer(serializers.ModelSerializer):
 class IngredientRecipeSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField(source='ingredient.id')
     name = serializers.ReadOnlyField(source='ingredient.name')
-    measurement_unit = serializers.ReadOnlyField(source='ingredient.measurement_unit')
+    measurement_unit = serializers.ReadOnlyField(
+        source='ingredient.measurement_unit'
+    )
 
     class Meta:
         fields = ('id', 'name', 'measurement_unit', 'amount', )
@@ -92,13 +94,17 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if request.user.is_anonymous:
             return False
-        return FavoriteRecipe.objects.filter(user=request.user, recipe=obj).exists()
+        return FavoriteRecipe.objects.filter(
+            user=request.user, recipe=obj
+        ).exists()
 
     def get_is_in_shopping_cart(self, obj):
         request = self.context.get('request')
         if request.user.is_anonymous:
             return False
-        return ShoppingCart.objects.filter(user=request.user, recipe=obj).exists()
+        return ShoppingCart.objects.filter(
+            user=request.user, recipe=obj
+        ).exists()
 
 
 class RecipeWriteSerializer(serializers.ModelSerializer):

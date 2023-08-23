@@ -5,7 +5,7 @@ from djoser.views import UserViewSet
 from rest_framework import permissions, response, status, viewsets
 from rest_framework.decorators import action
 
-from recipes.models import (FavoriteRecipe, Ingredient, IngredientRecipe,
+from recipes.models import (FavoriteRecipe, Ingredient,
                             Recipe, ShoppingCart, Tag)
 from users.models import Subscribe, User
 from .filters import IngredientFilter, RecipeFilter
@@ -56,7 +56,9 @@ class CustomUserViewSet(UserViewSet):
             )
             serializer.is_valid(raise_exception=True)
             Subscribe.objects.create(user=request.user, author=author)
-            return response.Response(serializer.data, status=status.HTTP_201_CREATED)
+            return response.Response(
+                serializer.data, status=status.HTTP_201_CREATED
+            )
         elif request.method == 'DELETE':
             Subscribe.objects.filter(user=request.user, author=author).delete()
             return response.Response(status=status.HTTP_204_NO_CONTENT)
@@ -152,7 +154,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 ingredient = ingredient_recipe.ingredient
                 amount = ingredient_recipe.amount
                 ingredients.append(
-                    f'{ingredient.name} - {amount} {ingredient.measurement_unit}'
+                    f'{ingredient.name} - '
+                    f'{amount} {ingredient.measurement_unit}'
                 )
         content = '\n'.join(ingredients)
         response = HttpResponse(content, content_type='text/plain')
