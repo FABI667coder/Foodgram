@@ -1,10 +1,17 @@
-from django.db import models
-from django.contrib.auth.models import AbstractUser
 from django.conf import settings
+from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
+from django.db import models
 
 
 class User(AbstractUser):
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = (
+        'username',
+        'first_name',
+        'last_name',
+    )
     username = models.CharField(
         'Имя пользователя',
         max_length=settings.MAX_VAL150,
@@ -14,7 +21,7 @@ class User(AbstractUser):
         validators=[
             RegexValidator(
                 regex=r"^[\w.@+-]+$",
-                message="Допустимые символы: буквы, цифры и @/./+/-/_",
+                message="Letters, numbers or @/./+/-/_ allowed only.",
             )
         ],
     )
@@ -37,10 +44,6 @@ class User(AbstractUser):
         blank=False,
         null=False,
     )
-    password = models.CharField(
-        'Пароль',
-        max_length=settings.MAX_VAL150,
-    )
 
     class Meta:
         verbose_name = 'Пользователь'
@@ -50,8 +53,8 @@ class User(AbstractUser):
 class Subscribe(models.Model):
     user = models.ForeignKey(
         User,
-        verbose_name='Пользователь',
-        related_name='user',
+        verbose_name='Подписчик',
+        related_name='subscriber',
         on_delete=models.CASCADE,
     )
     author = models.ForeignKey(

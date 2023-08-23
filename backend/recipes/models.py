@@ -1,7 +1,7 @@
-from django.db import models
-from django.contrib.auth import get_user_model
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
+from django.db import models
 
 User = get_user_model()
 
@@ -59,7 +59,6 @@ class Recipe(models.Model):
     image = models.ImageField(
         upload_to='app/',
         null=True,
-        default=None,
     )
     ingredient = models.ManyToManyField(
         Ingredient,
@@ -105,7 +104,7 @@ class IngredientRecipe(models.Model):
         related_name='ingredient_recipes',
         on_delete=models.CASCADE,
     )
-    count = models.PositiveSmallIntegerField(
+    amount = models.PositiveSmallIntegerField(
         'Количество',
         validators=(
             MinValueValidator(
