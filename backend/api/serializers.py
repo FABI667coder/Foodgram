@@ -47,7 +47,7 @@ class IngredientRecipeWriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         fields = ('id', 'amount', )
-        model = IngredientRecipe
+        model = Ingredient
 
 
 class IngredientRecipeSerializer(serializers.ModelSerializer):
@@ -63,9 +63,9 @@ class IngredientRecipeSerializer(serializers.ModelSerializer):
 
 
 class RecipeReadSerializer(serializers.ModelSerializer):
-    tag = TagSerializer(many=True, read_only=True)
+    tags = TagSerializer(many=True, read_only=True)
     author = UserSerializer(read_only=True)
-    ingredient = IngredientRecipeSerializer(
+    ingredients = IngredientRecipeSerializer(
         many=True,
         read_only=True,
         source='ingredient_recipes'
@@ -77,9 +77,9 @@ class RecipeReadSerializer(serializers.ModelSerializer):
     class Meta:
         fields = (
             'id',
-            'tag',
+            'tags',
             'author',
-            'ingredient',
+            'ingredients',
             'is_favorited',
             'is_in_shopping_cart',
             'name',
@@ -108,57 +108,60 @@ class RecipeReadSerializer(serializers.ModelSerializer):
 
 
 class RecipeWriteSerializer(serializers.ModelSerializer):
-    ingredient = IngredientRecipeWriteSerializer(many=True)
-    tag = serializers.PrimaryKeyRelatedField(
+    ingredients = IngredientRecipeWriteSerializer(many=True)
+    tags = serializers.PrimaryKeyRelatedField(
         queryset=Tag.objects.all(), many=True
     )
     author = UserSerializer(read_only=True)
-    image = Base64ImageField
+    image = Base64ImageField(required=False)
 
     class Meta:
         model = Recipe
         fields = (
-            'ingredient',
+            'ingredients',
             'author',
-            'tag',
+            'tags',
             'image',
             'name',
             'text',
             'cooking_time',
         )
 
-    def connect_ingredient_tag(self, recipe, ingredient, tag):
-        for _tag in tag:
-            recipe.tag.add('_tag')
-            recipe.save()
-        for _ingredient in ingredient:
+    def connect_ingredient(self, recipe, ingredients):
+        for ingredient in ingredients:
             IngredientRecipe.objects.create(
-                recipe=recipe,
-                ingredient=ingredient['id'],
+                ingredient_id=ingredient['id'],
                 amount=ingredient['amount'],
+                recipe=recipe
             )
 
     def create(self, validated_data):
-        ingredient = validated_data.pop('ingredient')
-        tag = validated_data.pop('tag')
+        ingredients = validated_data.pop('ingredients')
+        tags = validated_data.pop('tags')
         recipe = Recipe.objects.create(
             author=self.context['request'].user,
             **validated_data
         )
-        self.connect_ingredient_tag(
-            recipe=recipe, ingredient=ingredient, tag=tag,
+        recipe.tags.set(tags)
+        self.connect_ingredient(
+            recipe=recipe, ingredients=ingredients,
         )
         return recipe
 
     def update(self, instance, validated_data):
-        ingredient = validated_data.pop('ingredient')
-        tag = validated_data.pop('tag')
+        ingredients = validated_data.pop('ingredients')
+        tags = validated_data.pop('tags')
+        super().update(instance, validated_data)
         instance.ingredients.clear()
-        instance.tag.clear()
-        self.connect_ingredient_tag(
-            recipe=instance, ingredients=ingredient, tag=tag,
+        instance.tag.set(tags)
+        self.connect_ingredient(
+            recipe=instance, ingredients=ingredients
         )
-        return super().update(instance, validated_data)
+        instance.save()
+        return instance
+
+    def to_representation(self, instance):
+        return RecipeReadSerializer(instance, context=self.context).data
 
 
 class RecipeSubscriberSerializer(serializers.ModelSerializer):

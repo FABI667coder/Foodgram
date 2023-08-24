@@ -16,8 +16,6 @@ class User(AbstractUser):
         'Имя пользователя',
         max_length=settings.MAX_VAL150,
         unique=True,
-        blank=False,
-        null=False,
         validators=[
             RegexValidator(
                 regex=r"^[\w.@+-]+$",
@@ -28,21 +26,15 @@ class User(AbstractUser):
     email = models.EmailField(
         'Эл.Почта',
         max_length=settings.MAX_VAL200,
-        null=False,
-        blank=False,
         unique=True,
     )
     first_name = models.CharField(
         'Имя',
         max_length=settings.MAX_VAL150,
-        blank=False,
-        null=False,
     )
     last_name = models.CharField(
         'Фамилия',
         max_length=settings.MAX_VAL150,
-        blank=False,
-        null=False,
     )
 
     class Meta:
@@ -69,7 +61,9 @@ class Subscribe(models.Model):
         verbose_name_plural = 'Подписка'
         constraints = [
             models.UniqueConstraint(
-                fields=('user', 'author'),
-                name='unique_subscribe',
+                fields=('user', 'author'), name='unique_follow'
             ),
+            models.CheckConstraint(
+                check=~models.Q(user=models.F('author')), name='no_self_follow'
+            )
         ]

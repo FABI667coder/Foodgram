@@ -1,7 +1,8 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
+from colorfield.fields import ColorField
 
 User = get_user_model()
 
@@ -19,6 +20,12 @@ class Ingredient(models.Model):
     class Meta:
         verbose_name = 'Ингредиенты'
         verbose_name_plural = 'Ингредиенты'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['name', 'measurement_unit'],
+                name='ingredient_uniq'
+            )
+        ]
 
 
 class Tag(models.Model):
@@ -27,10 +34,9 @@ class Tag(models.Model):
         unique=True,
         max_length=settings.MAX_VAL150,
     )
-    color = models.CharField(
+    color = ColorField(
         'Цвет',
-        unique=True,
-        max_length=7,
+        format='hexa'
     )
     slug = models.SlugField(
         unique=True,
@@ -60,12 +66,12 @@ class Recipe(models.Model):
         upload_to='app/',
         null=True,
     )
-    ingredient = models.ManyToManyField(
+    ingredients = models.ManyToManyField(
         Ingredient,
         related_name='recipes',
         verbose_name='Ингредиенты',
     )
-    tag = models.ManyToManyField(
+    tags = models.ManyToManyField(
         Tag,
         related_name='recipes',
         verbose_name='Тег',
@@ -77,6 +83,10 @@ class Recipe(models.Model):
                 settings.MIN_SCORE,
                 message='Минимальное время приготовления 1 минута'
             ),
+            MaxValueValidator(
+                settings.MAX_SCORE,
+                message='Максимальное время приготовления 240 минут'
+            )
         ]
     )
 
@@ -109,8 +119,12 @@ class IngredientRecipe(models.Model):
         validators=(
             MinValueValidator(
                 settings.MIN_SCORE,
-                message='Выберите хотя бы 1 ингредиент'
+                message='Количество не может быть ниже 1'
             ),
+            MaxValueValidator(
+                settings.MAX_AMOUNT,
+                message='Количество не может превышать 2000'
+            )
         ),
     )
 
@@ -136,6 +150,12 @@ class FavoriteRecipe(models.Model):
     class Meta:
         verbose_name = 'Избранный рецепт'
         verbose_name_plural = 'Избранный рецепт'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['recipe', 'user'],
+                name='unique_favorite',
+            )
+        ]
 
 
 class ShoppingCart(models.Model):
@@ -155,3 +175,9 @@ class ShoppingCart(models.Model):
     class Meta:
         verbose_name = 'Список покупок'
         verbose_name_plural = 'Список покупок'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['recipe', 'user'],
+                name='unique_shopping_cart',
+            )
+        ]

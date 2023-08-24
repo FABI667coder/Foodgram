@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'djoser',
     'django_filters',
+    'colorfield',
 ]
 
 MIDDLEWARE = [
@@ -145,9 +146,18 @@ REST_FRAMEWORK = {
 }
 
 DJOSER = {
+    'PERMISSIONS': {
+        'user_list': ('rest_framework.permissions.AllowAny',),
+    },
+    'SERIALIZERS': {
+        'user': 'api.serializers.UserSerializer',
+    },
     'LOGIN_FIELD': 'email',
+    'HIDE_USERS': False,
 }
 
 MAX_VAL150 = 150
 MAX_VAL200 = 200
 MIN_SCORE = 1
+MAX_SCORE = 240
+MAX_AMOUNT = 2000
