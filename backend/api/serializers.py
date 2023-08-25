@@ -45,7 +45,9 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 
 class IngredientRecipeWriteSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField()
+    id = serializers.PrimaryKeyRelatedField(
+        queryset=Ingredient.objects.all()
+    )
     amount = serializers.IntegerField(
         validators=(
             MinValueValidator(
@@ -62,20 +64,6 @@ class IngredientRecipeWriteSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('id', 'amount', )
         model = Ingredient
-
-    def validate_id(self, value):
-        if value:
-            try:
-                Ingredient.objects.get(id=value)
-            except Ingredient.DoesNotExist:
-                raise ValidationError(
-                    'Ингредиента с таким id не существует'
-                )
-        else:
-            raise ValidationError(
-                'Поле id пусто'
-            )
-        return value
 
 
 class IngredientRecipeSerializer(serializers.ModelSerializer):
@@ -192,7 +180,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
     def connect_ingredient(self, recipe, ingredients):
         for ingredient in ingredients:
             IngredientRecipe.objects.create(
-                ingredient_id=ingredient['id'],
+                ingredient=ingredient['id'],
                 amount=ingredient['amount'],
                 recipe=recipe
             )
