@@ -1,8 +1,8 @@
+from colorfield.fields import ColorField
 from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from colorfield.fields import ColorField
 
 User = get_user_model()
 
@@ -36,7 +36,8 @@ class Tag(models.Model):
     )
     color = ColorField(
         'Цвет',
-        format='hexa'
+        format='hexa',
+        unique=True,
     )
     slug = models.SlugField(
         unique=True,
@@ -63,7 +64,8 @@ class Recipe(models.Model):
         'Описание',
     )
     image = models.ImageField(
-        upload_to='app/',
+        'Картинка',
+        upload_to='recipes/img/',
         null=True,
     )
     ingredients = models.ManyToManyField(
