@@ -152,10 +152,6 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
                         'Ингредиенты не уникальны'
                     )
                 ingredients_list.append(ingredient['id'])
-                if ingredient['amount'] <= 0:
-                    raise ValidationError(
-                        'Вы не добавили ингредиенты'
-                    )
         else:
             raise ValidationError(
                 'Ингредиенты отсутствуют'
