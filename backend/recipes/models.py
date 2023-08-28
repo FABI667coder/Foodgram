@@ -36,7 +36,6 @@ class Tag(models.Model):
     )
     color = ColorField(
         'Цвет',
-        format='hexa',
         unique=True,
     )
     slug = models.SlugField(
