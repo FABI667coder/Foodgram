@@ -70,6 +70,7 @@ class Recipe(models.Model):
     )
     ingredients = models.ManyToManyField(
         Ingredient,
+        through='IngredientRecipe',
         related_name='recipes',
         verbose_name='Ингредиенты',
     )
@@ -133,6 +134,12 @@ class IngredientRecipe(models.Model):
     class Meta:
         verbose_name = 'Ингредиенты в рецепте'
         verbose_name_plural = 'Ингредиенты в рецепте'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['recipe', 'ingredient'],
+                name='unique_ingredient',
+            )
+        ]
 
 
 class FavoriteRecipe(models.Model):
